@@ -1,0 +1,120 @@
+ <!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<title>Home Menu</title>
+	</head>
+<body>
+<h4 style='color:red'>App Step 5: user-profile</h4>
+<h1>Home</h1>
+<h4 id="msg"></h4>
+<!--tambahkan menu dan submenu-->
+<div id="menu"></div>
+<div id="sub_menu" style="display:none;"></div>
+<script src="function.js"></script>
+<script>
+	// step : home
+	// step 4.1:
+	var login_blok=sessionStorage.getItem('login_blok');
+	var menu=document.getElementById('menu');
+	var sub_menu=document.getElementById('sub_menu');
+	var list_menu;
+	
+	// step 4.2:	
+	function loginRead(){
+		var obj={"login_blok":login_blok}
+		
+		loadXHR('https://datablok.id/v0/login/read.php',obj,loginReadShow);
+	}
+	
+	// step 4.3:
+	function loginReadShow(paket){
+		var html;
+		if (paket.err===0){
+			menuReadData();
+		}
+		else{
+			sessionStorage.removeItem('login_blok');
+			window.location.href="login.html";
+		}
+	}
+
+	// step 4.4:
+	// fungsi untuk memanggil daftar menu 
+	function menuReadData(){
+		msg.innerHTML='Please wait ...';
+		var obj = {"login_blok":login_blok};
+		loadXHR('https://datablok.id/v0/menu/read.php',obj,menuReadDataShow); 
+	}
+	
+	// step 4.5:
+	// fungsi menu
+	function menuReadDataShow(paket){
+		// copy data menu ke list_menu, ...
+		// untuk digunakan pada saat memanggil sub menu
+		list_menu=paket;
+		msg.innerHTML='';
+		var html='<h2>Menu</h2>';
+		var x;
+		if (paket.err==0){
+			var sudah;
+			for (x in paket.data){
+				if (sudah!=paket.data[x].menu_code){
+					if (paket.data[x].menu_parent=='home'){
+						html+='<button type="button" onclick="menuClick(\''+paket.data[x].menu_code+'\')">'+paket.data[x].menu_name+'</button>';
+					}
+				}
+				sudah=paket.data[x].menu_code;
+			}
+			html+='<button onclick="load_modul(\'logout\')">Log out</button>'
+			menu.innerHTML = html;	
+		}
+		else{
+			msg.innerHTML=paket.msg;
+		}
+	}
+	
+	// step 4.6:
+	// fungsi sub-menu, yaitu ketika menu diklik.
+	function menuClick(menu_code){
+		var x;
+		var sudah;
+		var html='';
+		for (x in list_menu.data){
+			if (list_menu.data[x].menu_parent==menu_code){
+				if (sudah!=list_menu.data[x].menu_group){
+					html+='</ul>'
+						+'<ul><h2>'+list_menu.data[x].menu_group+'</h2>';
+				}
+				html+='<li><button onclick="load_modul(\''+list_menu.data[x].menu_code+'\')">'+list_menu.data[x].menu_name+'</button></li>';
+				sudah=list_menu.data[x].menu_group;
+			}
+		}
+		html+='<button onclick="subMenuClose();">Close</button>'
+		sub_menu.innerHTML = html;	
+		sub_menu.style.display='block';
+	}
+	
+	// step 4.7:
+	function subMenuClose(){
+		sub_menu.style.display='none';
+	}
+	
+	// step 4.8:
+	function load_modul(modul){
+		// ganti dengan href
+		// alert(modul);
+		window.location.href=modul+".html";
+	}
+	
+	// step 4.9: close folder
+	// step 4.10: close show
+	
+	// step 4.11:
+	loginRead();
+	
+
+</script>
+</body>
+</html> 
